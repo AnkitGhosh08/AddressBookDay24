@@ -11,6 +11,7 @@ public class AddressBookMain {
     public static void main(String[] args) {
 
         System.out.println("---------Address Book---------");
+        Scanner sc = new Scanner(System.in);
 
         // We have created the objects of the class.
         MultipleAddressBook obj = new MultipleAddressBook();
@@ -56,6 +57,14 @@ public class AddressBookMain {
                     break;
                 case 11:
                     obj.displayPeopleByRegion(AddressBookServices.personByState);
+                    break;
+                case 12:
+                    System.out.println("Enter \n1.Display By City\n2.Display By State");
+                    int countChoice = sc.nextInt();
+                    if(countChoice==1)
+                        obj.countPeopleByRegion(AddressBookServices.personByCity);
+                    else
+                        obj.countPeopleByRegion(AddressBookServices.personByState);
                     break;
                 case 0:
                     System.exit(0);
