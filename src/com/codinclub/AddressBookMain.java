@@ -11,13 +11,11 @@ public class AddressBookMain {
     public static void main(String[] args) {
 
         System.out.println("---------Address Book---------");
-        Scanner sc = new Scanner(System.in);
 
-         // We have created the objects of the class.
-
+        // We have created the objects of the class.
         MultipleAddressBook obj = new MultipleAddressBook();
 
-         // While loop to call the methods will the scanner is closed.
+        // While loop to call the methods will the scanner is closed.
 
         while (true) {
             System.out.println("Enter \n 1. To add the new AddressBook\n 2. To add contact in AddressBook\n "
@@ -49,11 +47,15 @@ public class AddressBookMain {
                     break;
                 case 8:
                     obj.searchByCity();
-                    ;
                     break;
                 case 9:
                     obj.searchByState();
-                    ;
+                    break;
+                case 10:
+                    obj.displayPeopleByRegion(AddressBookServices.personByCity);
+                    break;
+                case 11:
+                    obj.displayPeopleByRegion(AddressBookServices.personByState);
                     break;
                 case 0:
                     System.exit(0);
