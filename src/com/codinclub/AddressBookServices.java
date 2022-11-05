@@ -2,7 +2,6 @@ package com.codinclub;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -17,35 +16,15 @@ import java.util.Scanner;
  */
 public class AddressBookServices {
     Scanner sc = new Scanner(System.in);
-    String name;
+    //String name;
 
     /**
      * We have created a list of ContactPerson type and also a HashMap for multiple address book.
      */
-    List<ContactPerson> contacts = new ArrayList<ContactPerson>();
-    Map<String, AddressBookServices> addressBookMap = new HashMap<>();
+    public Map<String, ContactPerson> contacts = new HashMap<String, ContactPerson>();
     public static HashMap<String, ArrayList<ContactPerson>> personByCity = new HashMap<String, ArrayList<ContactPerson>>();
     public static HashMap<String, ArrayList<ContactPerson>> personByState = new HashMap<String, ArrayList<ContactPerson>>();
-    ContactPerson person = new ContactPerson();
 
-    /**
-     * In this method we are checking if the contacts added is duplicate or not with reference to the first name.
-     * 1. We are taking first name from the user.
-     * 2. Then we are checking in the ArrayList if the name matches the present firstname.
-     * 3. If present then it will give error.
-     * 4. Else it will call the addPerson Method
-     */
-    public void duplicateCheck() {
-        System.out.print(" Please enter the first name: ");
-        name = sc.next();
-        for (ContactPerson i : contacts) {
-            if (i.getFirstName().equals(name)) {
-                System.out.println(" Given name already exists");
-                return;
-            }
-        }
-        addPerson();
-    }
 
     /**
      * We have created this class to take number of contacts from the user.
@@ -56,7 +35,7 @@ public class AddressBookServices {
         int number = sc.nextInt();
         for (int i = 0; i < number; i++) {
             System.out.println("Enter the contact details of person ");
-            duplicateCheck();
+            addPerson();
         }
     }
 
@@ -69,7 +48,13 @@ public class AddressBookServices {
     public void addPerson() {
         ContactPerson person = new ContactPerson();
         Scanner scan = new Scanner(System.in);
-        String firstName = name;
+        System.out.println("Enter First Name: ");
+        String firstName = scan.next();
+
+        if (contacts.containsKey(firstName)) {
+            System.out.println("Contact Already Exists");
+            return;
+        }
 
         System.out.print(" Please enter the last name: ");
         String lastName = scan.next();
@@ -99,47 +84,11 @@ public class AddressBookServices {
         person.setCity(city);
         person.setState(state);
         person.setZip(zip);
-        contacts.add(person);
+        addPersonToCity(person);
+        addPersonToState(person);
 
-    }
+        contacts.put(firstName, person);
 
-    /**
-     * We have created the findContact method to find a specific contact in ArrayList for manipulation.
-     * 1. We are taking the firstname from the console.
-     * 2. Then will advance for loop we are iterating through the ArrayList
-     * 3. If the name matches then we will increment the duplicate counter.
-     * 4. We have created the duplicate counter to check if same name exists twice.
-     * 5. Else it will return the contact.
-     *
-     * @return - It will return the contact to take action on.
-     */
-    public ContactPerson findContact() {
-        System.out.println("\n Enter the first name of the contact to edit: ");
-        String name = sc.next();
-        int duplicate = 0;
-        ContactPerson temp = null;
-        for (ContactPerson contact : contacts) {
-            if (contact.getFirstName().equals(name)) {
-                duplicate++;
-                temp = contact;
-            }
-        }
-        if (duplicate == 1) {
-            return temp;
-
-        } else if (duplicate > 1) {
-            System.out.print(" There are multiple contacts with given name.\n Please enter their email id: ");
-            String email = sc.next();
-            for (ContactPerson contact : contacts) {
-                if (contact.getFirstName().equals(name) && contact.getEmail().equals(email)) {
-                    return contact;
-                }
-            }
-        } else {
-            System.out.println("No contact with the given first name. Please enter the correct first name");
-            findContact();
-        }
-        return temp;
     }
 
     /**
@@ -150,78 +99,84 @@ public class AddressBookServices {
      */
     public void editContact() {
 
-        ContactPerson contact = findContact();
+        ContactPerson contact = new ContactPerson();
 
-        System.out.println("Enter your choice to edit: " + "\n 1.Edit first name" + "\n 2.Edit last name"
-                + "\n 3.Edit address" + "\n 4.Edit city" + "\n 5.Edit state" + "\n 6.Edit zipcode"
-                + "\n 7.Edit phone number" + "\n 8.Edit email");
+        System.out.println("Enter the first name:");
+        String firstName = sc.next();
 
-        int choice = sc.nextInt();                                 //with the help of setters setting the new details
-        switch (choice) {
-            case 1:
-                System.out.println("Enter new first name");
-                String newFirstName = sc.next();
-                contact.setFirstName(newFirstName);
-                System.out.println("new first name updated");
+        if (contacts.containsKey(firstName)) {
+            contact = contacts.get(firstName);
 
-                break;
-            case 2:
-                System.out.println("Enter new last name");
-                String newLastName = sc.next();
-                contact.setLastName(newLastName);
-                System.out.println("new last name updated");
+            System.out.println("Enter your choice to edit: " + "\n 1.Edit first name" + "\n 2.Edit last name"
+                    + "\n 3.Edit address" + "\n 4.Edit city" + "\n 5.Edit state" + "\n 6.Edit zipcode"
+                    + "\n 7.Edit phone number" + "\n 8.Edit email");
 
-                break;
-            case 3:
-                System.out.println("Enter new address");
-                String newAddress = sc.next();
-                contact.setAddress(newAddress);
-                System.out.println("new new address updated");
+            int choice = sc.nextInt();                                 //with the help of setters setting the new details
+            switch (choice) {
+                case 1:
+                    System.out.println("Enter new first name");
+                    String newFirstName = sc.next();
+                    contact.setFirstName(newFirstName);
+                    System.out.println("new first name updated");
 
-                break;
-            case 4:
-                System.out.println("Enter new city");
-                String newCity = sc.next();
-                contact.setCity(newCity);
-                System.out.println("new city updated");
+                    break;
+                case 2:
+                    System.out.println("Enter new last name");
+                    String newLastName = sc.next();
+                    contact.setLastName(newLastName);
+                    System.out.println("new last name updated");
 
-                break;
-            case 5:
-                System.out.println("Enter new state");
-                String newState = sc.next();
-                contact.setState(newState);
-                System.out.println("new state updated");
+                    break;
+                case 3:
+                    System.out.println("Enter new address");
+                    String newAddress = sc.next();
+                    contact.setAddress(newAddress);
+                    System.out.println("new newaddress updated");
 
-                break;
-            case 6:
-                System.out.println("Enter new zip code");
-                int newZipCode = sc.nextInt();
-                contact.setZip(newZipCode);
-                System.out.println("new zip code updated");
-                break;
+                    break;
+                case 4:
+                    System.out.println("Enter new city");
+                    String newCity = sc.next();
+                    contact.setCity(newCity);
+                    System.out.println("new city updated");
 
-            case 7:
-                System.out.println("Enter new phone number");
-                long newPhoneNumber = sc.nextLong();
-                contact.setPhoneNumber(newPhoneNumber);
-                System.out.println("new phone number updated");
+                    break;
+                case 5:
+                    System.out.println("Enter new state");
+                    String newState = sc.next();
+                    contact.setState(newState);
+                    System.out.println("new state updated");
 
-                break;
+                    break;
+                case 6:
+                    System.out.println("Enter new zip code");
+                    int newZipCode = sc.nextInt();
+                    contact.setZip(newZipCode);
+                    System.out.println("new zip code updated");
+                    break;
 
-            case 8:
-                System.out.println("Enter new email");
-                String newEmail = sc.next();
-                contact.setEmail(newEmail);
-                System.out.println("new email updated");
+                case 7:
+                    System.out.println("Enter new phone number");
+                    long newPhoneNumber = sc.nextLong();
+                    contact.setPhoneNumber(newPhoneNumber);
+                    System.out.println("new phone number updated");
 
-                break;
+                    break;
 
-            default:
-                System.out.println("Please enter a number between 1 to 8 only...");
-                break;
+                case 8:
+                    System.out.println("Enter new email");
+                    String newEmail = sc.next();
+                    contact.setEmail(newEmail);
+                    System.out.println("new email updated");
+
+                    break;
+
+                default:
+                    System.out.println("Please enter a number between 1 to 8 only...");
+                    break;
+            }
+            System.out.println("The contact after editing is : " + contact);
         }
-        System.out.println("The contact after editing is : " + contact);
-
     }
 
     /**
@@ -230,6 +185,7 @@ public class AddressBookServices {
      */
     public void displayContact() {
         System.out.println(contacts);
+        System.out.println("Value is " + contacts.values());
     }
 
     /**
@@ -238,19 +194,21 @@ public class AddressBookServices {
      * 2. Then we will call the remove method to delete the contact from the list.
      */
     public void deleteContact() {
-        ContactPerson contact = findContact();
-        if (contact == null) {
-            System.out.println("No contact found with the given name");
-            return;
+        System.out.println("Enter the first name of the person to be deleted");
+        String firstName = sc.next();
+        if (contacts.containsKey(firstName)) {
+            contacts.remove(firstName);
+            System.out.println("Successfully Deleted");
+        } else {
+            System.out.println("Contact Not Found!");
         }
-        contacts.remove(contact);
-        System.out.println("The contact has been deleted from the Address Book");
+
     }
 
     /**
-     * In this method we are checking the person by city
+     * In this method we are checking the persob by city
      *
-     * @param contact- We are passing the contact there
+     * @param contact- We are pasing the contact there
      */
     public void addPersonToCity(ContactPerson contact) {
         if (personByCity.containsKey(contact.getCity())) {
@@ -261,6 +219,7 @@ public class AddressBookServices {
             personByCity.put(contact.getCity(), cityList);
         }
     }
+
 
     /**
      * In this method we are checking the person by state
