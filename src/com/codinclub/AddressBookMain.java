@@ -62,13 +62,16 @@ public class AddressBookMain {
                 case 12:
                     System.out.println("Enter \n1.Display By City\n2.Display By State");
                     int countChoice = sc.nextInt();
-                    if(countChoice==1)
+                    if (countChoice == 1)
                         obj.countPeopleByRegion(AddressBookServices.personByCity);
                     else
                         obj.countPeopleByRegion(AddressBookServices.personByState);
                     break;
                 case 13:
-                    obj.sortAddressBook();
+                    System.out.println("What Criteria Do You Want Address Book To Be Sorted In ?");
+                    System.out.println("1.FirstName\n2.City\n3.State\n4.Zip Code");
+                    int sortingChoice = sc.nextInt();
+                    obj.sortAddressBook(sortingChoice);
                     break;
                 case 0:
                     System.exit(0);
