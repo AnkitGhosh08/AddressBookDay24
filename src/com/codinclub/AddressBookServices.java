@@ -2,6 +2,8 @@ package com.codinclub;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -11,6 +13,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.Collectors;
+
+import com.opencsv.CSVReaderBuilder;
+import com.opencsv.bean.StatefulBeanToCsv;
+import com.opencsv.bean.StatefulBeanToCsvBuilder;
+import com.opencsv.exceptions.CsvDataTypeMismatchException;
+import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 
 /**
  * In this class we are creating methods for the contact manipulation. This
@@ -27,7 +35,7 @@ import java.util.stream.Collectors;
  *
  * @author Ankit Ghosh
  */
-public class AddressBookServices {
+public class AddressBookServices<CSVReader> {
     Scanner scannerObject = new Scanner(System.in);
     /**
      * We have used a HashMap to save the contacts and the addressBook name.
@@ -412,5 +420,55 @@ public class AddressBookServices {
             e.printStackTrace();
         }
         return addressBookList;
+    }
+    /**
+     * [10] Method to write the data to a CSV file
+     * @throws IOException -  to throw any exception if occurred.
+     */
+    public void writeDataToCSV() throws IOException, CsvRequiredFieldEmptyException, CsvDataTypeMismatchException {
+
+        String fileName = "./" + this.getAddressBookName() + ".csv";
+        try (Writer writer = Files.newBufferedWriter(Paths.get(fileName));) {
+
+            StatefulBeanToCsvBuilder<ContactPerson> builder = new StatefulBeanToCsvBuilder<>(writer);
+            StatefulBeanToCsv<ContactPerson> beanWriter = builder.build();
+            ArrayList<ContactPerson> listOfContacts = contact.values().stream()
+                    .collect(Collectors.toCollection(ArrayList::new));
+            beanWriter.write(listOfContacts);
+            writer.close();
+            System.out.println("Written To CSV Successfully !");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * [11] Method to read data from a CSV file
+     * @throws IOException - we will throw the IO exception
+     */
+    public <CsvValidationException extends Throwable> void readDataFromCSV() throws IOException, CsvValidationException {
+
+        String fileName = "./" + this.getAddressBookName() + ".csv";
+        try (Reader reader = Files.newBufferedReader(Paths.get(fileName));
+             CSVReader csvReader = new CSVReaderBuilder(reader).withSkipLines(1).build();) {
+
+            String[] nextRecord;
+            try {
+                while ((nextRecord = csvReader.readNext()) != null) {
+                    System.out.println("First Name = " + nextRecord[2]);
+                    System.out.println("Last Name = " + nextRecord[3]);
+                    System.out.println("City = " + nextRecord[0]);
+                    System.out.println("State = " + nextRecord[5]);
+                    System.out.println("Email = " + nextRecord[1]);
+                    System.out.println("Phone Number = " + nextRecord[4]);
+                    System.out.println("Zip Code = " + nextRecord[6]);
+                    System.out.println("\n");
+                }
+            } catch (com.opencsv.exceptions.CsvValidationException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
