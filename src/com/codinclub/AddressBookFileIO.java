@@ -1,6 +1,5 @@
 package com.codinclub;
 
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,7 +11,7 @@ import java.util.Map;
 /**
  * We have created this class for the File IO
  *
- * @author Ankit Ghosh
+ * @author Tom
  */
 public class AddressBookFileIO {
     public void writeToAddressBookFile(String fileName, Map<String, ContactPerson> contacts) {

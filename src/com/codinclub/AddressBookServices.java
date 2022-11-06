@@ -1,10 +1,12 @@
 package com.codinclub;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
+import java.nio.*;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,6 +16,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
+import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.bean.StatefulBeanToCsv;
 import com.opencsv.bean.StatefulBeanToCsvBuilder;
@@ -28,21 +31,23 @@ import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
  * [3] Method delete to delete a specific contact.
  * [4] Method to add the contact person to city list.
  * [5] Method to add the contact person to State list.
- * [6] Method to sort address Book by name/state/ city/ zip
+ * [6] Method to sort address Book by firstname/state/ city/ zip
  * [7] Method to print the sorted address Book
  * [8] Method to write the data to file
  * [9] Method to read the data from the file and display in console.
+ * [10] Method to write the data to a CSV file
+ * [11] Method to read data from a CSV file
  *
  * @author Ankit Ghosh
  */
-public class AddressBookServices<CSVReader> {
+public class AddressBookServices {
     Scanner scannerObject = new Scanner(System.in);
     /**
      * We have used a HashMap to save the contacts and the addressBook name.
      */
-    public Map<String, ContactPerson> contact = new HashMap<>();
-    public static HashMap<String, ArrayList<ContactPerson>> personByCity = new HashMap<>();
-    public static HashMap<String, ArrayList<ContactPerson>> personByState = new HashMap<>();
+    public Map<String, ContactPerson> contact = new HashMap<String, ContactPerson>();
+    public static HashMap<String, ArrayList<ContactPerson>> personByCity = new HashMap<String, ArrayList<ContactPerson>>();
+    public static HashMap<String, ArrayList<ContactPerson>> personByState = new HashMap<String, ArrayList<ContactPerson>>();
     public String addressBookName;
     public boolean isPresent = false;
 
@@ -53,6 +58,10 @@ public class AddressBookServices<CSVReader> {
      */
     public String getAddressBookName() {
         return addressBookName;
+    }
+
+    public enum IOService {
+        CONSOLE_IO, FILE_IO
     }
 
     /**
@@ -71,7 +80,7 @@ public class AddressBookServices<CSVReader> {
      * @return - the list of contacts
      */
     public ArrayList<ContactPerson> getContact() {
-        return new ArrayList<>(contact.values());
+        return new ArrayList<ContactPerson>(contact.values());
     }
 
     /**
@@ -85,7 +94,7 @@ public class AddressBookServices<CSVReader> {
 
             System.out.println("\nChoose the operation you want to perform");
             System.out.println(
-                    "1.Add Contact to Address Book\n2.Edit Existing contact\n3.Display contact book\n4.Delete Contact\n5.Display Sorted Address Book \n6.Write To File\n7.Read From File\n8.Exit Address book System");
+                    "1.Add Contact to Address Book\n2.Edit Existing contact\n3.Display contact book\n4.Delete Contact\n5.Display Sorted Address Book \n6.Write To File\n7.Read From File \n8.Write Data To CSV File \n9.Read Data From CSV File \n10.Exit Address book System");
 
             switch (scannerObject.nextInt()) {
                 case 1:
@@ -107,13 +116,26 @@ public class AddressBookServices<CSVReader> {
                     sortAddressBook(sortingChoice);
                     break;
                 case 6:
-                    writeToAddressBookFile();
-                    System.out.println("Written To file");
+                    writeToAddressBookFile(IOService.FILE_IO);
                     break;
                 case 7:
-                    readDataFromFile();
+                    readDataFromFile(IOService.FILE_IO);
                     break;
                 case 8:
+                    try {
+                        writeDataToCSV();
+                    } catch (IOException | CsvRequiredFieldEmptyException | CsvDataTypeMismatchException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                case 9:
+                    try {
+                        readDataFromCSV();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                case 10:
                     moreChanges = false;
                     System.out.println("Exiting Address Book: " + this.getAddressBookName() + " !");
 
@@ -169,14 +191,13 @@ public class AddressBookServices<CSVReader> {
         int zipCode = scan.nextInt();
 
         System.out.print(" Please enter the phone number: ");
-        long phoneNumber = scan.nextLong();
+        Long phoneNumber = scan.nextLong();
 
         System.out.print(" Please enter the email: ");
         String email = scan.next();
 
         person.setFirstName(firstName);
         person.setLastName(lastName);
-        person.setAddress(address);
         person.setPhoneNumber(phoneNumber);
         person.setEmail(email);
         person.setCity(city);
@@ -184,6 +205,8 @@ public class AddressBookServices<CSVReader> {
         person.setZip(zipCode);
         addPersonToCity(person);
         addPersonToState(person);
+        contact.put(firstName, person);
+
         contact.put(firstName, person);
     }
 
@@ -275,7 +298,7 @@ public class AddressBookServices<CSVReader> {
         if (personByCity.containsKey(contact.getCity())) {
             personByCity.get(contact.getCity()).add(contact);
         } else {
-            ArrayList<ContactPerson> cityList = new ArrayList<>();
+            ArrayList<ContactPerson> cityList = new ArrayList<ContactPerson>();
             cityList.add(contact);
             personByCity.put(contact.getCity(), cityList);
         }
@@ -300,7 +323,7 @@ public class AddressBookServices<CSVReader> {
     }
 
     /**
-     * [6] Method to sort address Book by name/state/ city/ zip
+     * [6] Method to sort address Book by fname/state/ city/ zip
      * We are using the streams to sort the address book.
      * Sorted method to sort the stream in acceding order.
      *
@@ -379,20 +402,14 @@ public class AddressBookServices<CSVReader> {
      * 2. Then we are using the String Buffer to append the data.
      * 3. We are converting the contact to string and then appending it.
      */
-    public void writeToAddressBookFile() {
+    public void writeToAddressBookFile(IOService ioService) {
+        if (ioService.equals(IOService.CONSOLE_IO))
+            displayContents();
 
-        String bookName = this.getAddressBookName();
-        String fileName = bookName + ".txt";
-
-        StringBuffer addressBookBuffer = new StringBuffer();
-        contact.values().stream().forEach(contact -> {String personDataString = contact.toString().concat("\n");
-            addressBookBuffer.append(personDataString);
-        });
-
-        try {
-            Files.write(Paths.get(fileName), addressBookBuffer.toString().getBytes());
-        } catch (IOException e) {
-            e.printStackTrace();
+        else if (ioService.equals(IOService.FILE_IO)) {
+            String bookName = this.getAddressBookName();
+            String fileName = bookName + ".txt";
+            new AddressBookFileIO().writeToAddressBookFile(fileName, contact);
         }
     }
 
@@ -404,25 +421,39 @@ public class AddressBookServices<CSVReader> {
      *
      * @return
      */
-    public List<String> readDataFromFile() {
+    public List<String> readDataFromFile(IOService fileIo) {
 
-        List<String> addressBookList = new ArrayList<>();
+        List<String> employeePayrollFromFile = new ArrayList<String>();
+        if (fileIo.equals(IOService.FILE_IO)) {
+            System.out.println("Employee Details from payroll-file.txt");
+            String bookName = this.getAddressBookName();
+            String fileName = bookName + ".txt";
+            employeePayrollFromFile = new AddressBookFileIO().readDataFromFile(fileName);
+
+        }
+        return employeePayrollFromFile;
+    }
+
+    public void printData(IOService fileIo) {
         String bookName = this.getAddressBookName();
         String fileName = bookName + ".txt";
-        System.out.println("Reading from : " + fileName + "\n");
-        try {
-            Files.lines(new File(fileName).toPath()).map(line -> line.trim()).forEach(contacts -> {
-                System.out.println(contacts);
-                addressBookList.add(contacts);
-            });
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return addressBookList;
+        if (fileIo.equals(IOService.FILE_IO)) new AddressBookFileIO().printData(fileName);
     }
+
+
+    public long countEntries(IOService fileIo) {
+
+        String bookName = this.getAddressBookName();
+        String fileName = bookName + ".txt";
+        if (fileIo.equals(IOService.FILE_IO))
+            return new AddressBookFileIO().countEntries(fileName);
+
+        return 0;
+    }
+
     /**
      * [10] Method to write the data to a CSV file
+     *
      * @throws IOException -  to throw any exception if occurred.
      */
     public void writeDataToCSV() throws IOException, CsvRequiredFieldEmptyException, CsvDataTypeMismatchException {
@@ -444,6 +475,7 @@ public class AddressBookServices<CSVReader> {
 
     /**
      * [11] Method to read data from a CSV file
+     *
      * @throws IOException - we will throw the IO exception
      */
     public <CsvValidationException extends Throwable> void readDataFromCSV() throws IOException, CsvValidationException {
