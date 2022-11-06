@@ -1,0 +1,6 @@
+<<<<<<< HEAD
+ContactPerson [firstName=Ankit, lastName=Ghosh, email=ankit13@gmail.com, phoneNumber=000000000, city=Tikamgarh, state=M.P., zip=12345]
+ContactPerson [firstName=Virat, lastName=kohli, email=Vk13@gmail.com, phoneNumber=929292, city=Bangalore, state=Karnataka, zip=9283]
+=======
+ContactPerson [firstName=Virat, lastName=Kohli, email=Vk123@gmail.com, phoneNumber=99999999999, city=delhi, state=delhi, zip=54321]]
+>>>>>>> main
